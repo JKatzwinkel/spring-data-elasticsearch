@@ -78,11 +78,10 @@ public abstract class InnerHitsIntegrationTests {
 	}
 
 	private static void testInnerHit(
-		SoftAssertions softly, SearchHits<?> innerHits, int index,
+		SoftAssertions softly, SearchHit<?> innerHit,
 		String firstName, String lastName,
 		int nestedOffsetLvl1, int nestedOffsetLvl2
 	) {
-		SearchHit<?> innerHit = innerHits.getSearchHit(index);
 		Object content = innerHit.getContent();
 		assertThat(content).isInstanceOf(Inhabitant.class);
 		Inhabitant inhabitant = (Inhabitant) content;
@@ -113,8 +112,8 @@ public abstract class InnerHitsIntegrationTests {
 		SearchHits<?> innerHits = searchHit.getInnerHits("inner_hit_name");
 		softly.assertThat(innerHits).hasSize(2);
 
-		testInnerHit(softly, innerHits, 0, "Carla", "Miller", 0, 1);
-		testInnerHit(softly, innerHits, 1, "Carla", "Nguyen", 0, 2);
+		testInnerHit(softly, innerHits.getSearchHit(0), "Carla", "Miller", 0, 1);
+		testInnerHit(softly, innerHits.getSearchHit(1), "Carla", "Nguyen", 0, 2);
 
 		softly.assertAll();
 	}
