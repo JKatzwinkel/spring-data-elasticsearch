@@ -58,8 +58,9 @@ public abstract class InnerHitsIntegrationTests {
 		indexOps.createWithMapping();
 
 		Inhabitant john = new Inhabitant("John", "Smith");
-		Inhabitant carla = new Inhabitant("Carla", "Miller");
-		House cornerHouse = new House("Round the corner", "7", Arrays.asList(john, carla));
+		Inhabitant carla1 = new Inhabitant("Carla", "Miller");
+		Inhabitant carla2 = new Inhabitant("Carla", "Nguyen");
+		House cornerHouse = new House("Round the corner", "7", Arrays.asList(john, carla1, carla2));
 		City metropole = new City("Metropole", Arrays.asList(cornerHouse));
 
 		Inhabitant jack = new Inhabitant("Jack", "Wayne");
@@ -74,6 +75,25 @@ public abstract class InnerHitsIntegrationTests {
 	@Order(java.lang.Integer.MAX_VALUE)
 	void cleanup() {
 		operations.indexOps(IndexCoordinates.of(indexNameProvider.getPrefix() + "*")).delete();
+	}
+
+	private static void testInnerHit(
+		SoftAssertions softly, SearchHits<?> innerHits, int index,
+		String firstName, String lastName,
+		int nestedOffsetLvl1, int nestedOffsetLvl2
+	) {
+		SearchHit<?> innerHit = innerHits.getSearchHit(index);
+		Object content = innerHit.getContent();
+		assertThat(content).isInstanceOf(Inhabitant.class);
+		Inhabitant inhabitant = (Inhabitant) content;
+		softly.assertThat(inhabitant.getFirstName()).isEqualTo(firstName);
+		softly.assertThat(inhabitant.getLastName()).isEqualTo(lastName);
+
+		NestedMetaData nestedMetaData = innerHit.getNestedMetaData();
+		softly.assertThat(nestedMetaData.getField()).isEqualTo("houses");
+		softly.assertThat(nestedMetaData.getOffset()).isEqualTo(nestedOffsetLvl1);
+		softly.assertThat(nestedMetaData.getChild().getField()).isEqualTo("inhabitants");
+		softly.assertThat(nestedMetaData.getChild().getOffset()).isEqualTo(nestedOffsetLvl2);
 	}
 
 	@Test
@@ -91,20 +111,10 @@ public abstract class InnerHitsIntegrationTests {
 		softly.assertThat(searchHit.getInnerHits()).hasSize(1);
 
 		SearchHits<?> innerHits = searchHit.getInnerHits("inner_hit_name");
-		softly.assertThat(innerHits).hasSize(1);
+		softly.assertThat(innerHits).hasSize(2);
 
-		SearchHit<?> innerHit = innerHits.getSearchHit(0);
-		Object content = innerHit.getContent();
-		assertThat(content).isInstanceOf(Inhabitant.class);
-		Inhabitant inhabitant = (Inhabitant) content;
-		softly.assertThat(inhabitant.getFirstName()).isEqualTo("Carla");
-		softly.assertThat(inhabitant.getLastName()).isEqualTo("Miller");
-
-		NestedMetaData nestedMetaData = innerHit.getNestedMetaData();
-		softly.assertThat(nestedMetaData.getField()).isEqualTo("houses");
-		softly.assertThat(nestedMetaData.getOffset()).isEqualTo(0);
-		softly.assertThat(nestedMetaData.getChild().getField()).isEqualTo("inhabitants");
-		softly.assertThat(nestedMetaData.getChild().getOffset()).isEqualTo(1);
+		testInnerHit(softly, innerHits, 0, "Carla", "Miller", 0, 1);
+		testInnerHit(softly, innerHits, 1, "Carla", "Nguyen", 0, 2);
 
 		softly.assertAll();
 	}
