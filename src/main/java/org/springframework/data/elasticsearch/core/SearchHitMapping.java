@@ -219,7 +219,10 @@ public class SearchHitMapping<T> {
 							searchDocument.getSortValues(), //
 							searchDocument.getHighlightFields(), //
 							searchHit.getInnerHits(), //
-							persistentEntityWithNestedMetaData.nestedMetaData, //
+							getPersistentEntity(
+								mappingContext.getPersistentEntity(type),
+								searchHit.getContent().getNestedMetaData()
+							).nestedMetaData,
 							searchHit.getExplanation(), //
 							searchHit.getMatchedQueries(), //
 							targetObject));
