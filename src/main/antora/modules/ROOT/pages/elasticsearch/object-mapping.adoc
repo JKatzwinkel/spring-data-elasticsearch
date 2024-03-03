@@ -380,7 +380,7 @@ public class Person {
 ==== Maps
 
 For values inside Maps apply the same mapping rules as for aggregate roots when it comes to _type hints_ and xref:elasticsearch/object-mapping.adoc#elasticsearch.mapping.meta-model.conversions[Custom Conversions].
-However the Map key needs to a String to be processed by Elasticsearch.
+However the Map key needs to be a String to be processed by Elasticsearch.
 
 .Collections
 ====
